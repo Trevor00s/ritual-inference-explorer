@@ -2,13 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FeedResponse } from "@/lib/ritual/types";
+import { huntField } from "@/lib/hunt";
 
 export function Hud({ feed, live }: { feed?: FeedResponse; live: boolean }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const total = feed ? Object.values(feed.counts).reduce((a, b) => a + b, 0) : 0;
+
+  const [kills, setKills] = useState(0);
+  useEffect(() => {
+    setKills(huntField.kills);
+    return huntField.subscribe(() => setKills(huntField.kills));
+  }, []);
 
   const tickerItems =
     feed?.records
@@ -45,6 +52,9 @@ export function Hud({ feed, live }: { feed?: FeedResponse; live: boolean }) {
               <span className="neon-green tabular">{total}</span> calls/window
             </span>
           )}
+          <span title="failed/pending inference particles hunted by the lizard">
+            🦎 <span className="neon-pink tabular">{kills}</span> hunted
+          </span>
           <span className="flex items-center gap-1">
             <span
               className="inline-block h-1.5 w-1.5 rounded-full"

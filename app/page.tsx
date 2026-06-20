@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Hud } from "@/components/Hud";
 import { NeuralCanvas } from "@/components/NeuralCanvas";
+import { Critter } from "@/components/Critter";
 import { TerminalFeed } from "@/components/TerminalFeed";
 import { Controls } from "@/components/Controls";
 import type { FeedResponse } from "@/lib/ritual/types";
@@ -41,9 +42,10 @@ export default function TerminalPage() {
 
       <section className="scanlines grid-bg relative flex-1 overflow-hidden">
         <NeuralCanvas records={data?.records ?? []} />
+        <Critter />
 
         {/* left terminal panel (glass, canvas glows behind) */}
-        <div className="absolute inset-y-0 left-0 flex w-full max-w-md flex-col border-r border-white/10 bg-black/70 backdrop-blur-sm sm:w-[44%]">
+        <div className="absolute inset-y-0 left-0 z-20 flex w-full max-w-md flex-col border-r border-white/10 bg-black/70 backdrop-blur-sm sm:w-[44%]">
           <div className="space-y-2 border-b border-white/10 p-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
@@ -82,15 +84,17 @@ export default function TerminalPage() {
         </div>
 
         {/* pipeline legend (over canvas, right side) */}
-        <div className="pointer-events-none absolute bottom-3 right-3 hidden rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-[10px] text-gray-500 backdrop-blur-sm sm:block">
+        <div className="pointer-events-none absolute bottom-3 right-3 z-20 hidden rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-[10px] text-gray-500 backdrop-blur-sm sm:block">
           <div className="mb-1 uppercase tracking-widest text-gray-600">TEE pipeline</div>
           <div className="font-mono neon-cyan">SUBMIT→COMMIT→TEE·EXEC→ATTEST→SETTLE→DELIVER</div>
-          <div className="mt-2 flex gap-3">
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
             <span><span style={{ color: "#FF1DCE" }}>●</span> AI</span>
             <span><span style={{ color: "#BFFF00" }}>●</span> I/O</span>
-            <span><span style={{ color: "#19D184" }}>●</span> crypto/verified</span>
+            <span><span style={{ color: "#19D184" }}>●</span> verified</span>
+            <span><span style={{ color: "#FACC15" }}>●</span> pending</span>
+            <span><span style={{ color: "#EF4444" }}>●</span> failed</span>
           </div>
-          <div className="mt-1 text-gray-600">each particle = a live inference flowing through the TEE</div>
+          <div className="mt-1 text-gray-600">🦎 the lizard hunts pending + failed inferences</div>
         </div>
       </section>
     </main>

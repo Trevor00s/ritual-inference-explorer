@@ -83,7 +83,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
     function resize() {
       const parent = cv.parentElement;
       if (!parent) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       w = parent.clientWidth;
       h = parent.clientHeight;
       cv.width = w * dpr;
@@ -96,7 +96,11 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
     const ro = new ResizeObserver(resize);
     if (cv.parentElement) ro.observe(cv.parentElement);
 
-    function draw() {
+    let lastT = 0;
+    function draw(t: number) {
+      raf = requestAnimationFrame(draw);
+      if (t - lastT < 33) return; // ~30fps is plenty for the particle field
+      lastT = t;
       cx.clearRect(0, 0, w, h);
 
       while (spawnQ.current.length && particles.current.length < 60) {
@@ -147,7 +151,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
         cx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         cx.fillStyle = hexToRgba(p.color, 0.85 * fade);
         cx.shadowColor = p.color;
-        cx.shadowBlur = 10;
+        cx.shadowBlur = 6;
         cx.fill();
         cx.shadowBlur = 0;
         // transaction hash label — the particle IS a tx
@@ -178,7 +182,6 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
         cx.fill();
       }
 
-      raf = requestAnimationFrame(draw);
     }
     raf = requestAnimationFrame(draw);
 

@@ -22,7 +22,7 @@ export function Critter({ color = "#19D184" }: { color?: string }) {
     window.addEventListener("mousemove", onMove);
 
     const logo = new Image();
-    logo.src = "/ritual-mark.png";
+    logo.src = `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/ritual-mark.png`;
 
     const stop = startCritter(canvas, mouse, { color, hunt: huntField, logo });
 

@@ -12,7 +12,7 @@ export function InferenceCard({ r }: { r: InferenceRecord }) {
 
   return (
     <Link
-      href={txHash ? `/tx/${txHash}` : "#"}
+      href={txHash ? `/tx?hash=${txHash}` : "#"}
       className="block animate-fade-in rounded-xl border border-gray-700/70 bg-ritual-elevated/60 p-4 transition-all hover:border-gray-500 hover:bg-ritual-elevated"
       style={isAI ? { borderTop: `2px solid ${hex}55` } : undefined}
     >

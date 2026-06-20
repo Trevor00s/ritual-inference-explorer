@@ -30,7 +30,7 @@ export function BootScreen({ done }: { done: boolean }) {
     >
       <div
         className="mb-6 h-24 w-24 animate-pulse-dot bg-contain bg-center bg-no-repeat"
-        style={{ backgroundImage: "url(/ritual-mark.png)", filter: "drop-shadow(0 0 18px rgba(25,209,132,0.55))" }}
+        style={{ backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_PATH || ""}/ritual-mark.png)`, filter: "drop-shadow(0 0 18px rgba(25,209,132,0.55))" }}
       />
       <div className="font-display text-sm font-extrabold uppercase tracking-[0.3em] text-gray-100">
         Ritual<span className="text-gray-600">//</span>

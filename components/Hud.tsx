@@ -25,7 +25,7 @@ export function Hud({ feed, live }: { feed?: FeedResponse; live: boolean }) {
   function go(e: React.FormEvent) {
     e.preventDefault();
     const v = q.trim();
-    if (/^0x[0-9a-fA-F]{64}$/.test(v)) router.push(`/tx/${v}`);
+    if (/^0x[0-9a-fA-F]{64}$/.test(v)) router.push(`/tx?hash=${v}`);
   }
 
   return (

@@ -35,7 +35,7 @@ export function TerminalFeed({ records, loading }: { records: InferenceRecord[];
         return (
           <Link
             key={`${tx}-${r.precompileAddress}-${r.blockNumber}`}
-            href={tx ? `/tx/${tx}` : "#"}
+            href={tx ? `/tx?hash=${tx}` : "#"}
             className="row-in block px-3 py-2 text-xs leading-relaxed transition-colors hover:bg-white/5"
           >
             <div className="flex items-center gap-2 text-[11px]">

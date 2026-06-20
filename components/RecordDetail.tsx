@@ -53,7 +53,7 @@ function TxLink({ label, hash }: { label: string; hash?: string | null }) {
   return (
     <div className="flex items-center gap-2 text-xs">
       <span className="w-24 text-gray-500">{label}</span>
-      <Link href={`/tx/${hash}`} className="font-mono text-gray-300 hover:text-ritual-lime">
+      <Link href={`/tx?hash=${hash}`} className="font-mono text-gray-300 hover:text-ritual-lime">
         {shortHash(hash, 10)}
       </Link>
       <a href={explorerTx(hash)} target="_blank" rel="noreferrer" className="text-gray-600 hover:text-ritual-green" title="View on explorer">

@@ -9,14 +9,11 @@ import { Critter } from "@/components/Critter";
 import { TerminalFeed } from "@/components/TerminalFeed";
 import { Controls } from "@/components/Controls";
 import type { FeedResponse } from "@/lib/ritual/types";
+import { getFeed } from "@/lib/ritual/indexer";
 
 async function fetchFeed(filter: string | null, search: string): Promise<FeedResponse> {
-  const p = new URLSearchParams({ limit: "40", blocks: "3000" });
-  if (filter) p.set("precompile", filter);
-  if (search) p.set("q", search);
-  const res = await fetch(`/api/feed?${p.toString()}`);
-  if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error ?? "feed error");
-  return res.json();
+  // Runs in the browser — the Ritual RPC allows CORS, so no backend is needed.
+  return getFeed({ limit: 40, blocks: 3000, precompileKey: filter, search });
 }
 
 export default function TerminalPage() {

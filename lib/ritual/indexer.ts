@@ -162,7 +162,12 @@ export async function getFeed(opts: FeedOptions = {}): Promise<FeedResponse> {
 /* --------------------------- single tx lookup --------------------------- */
 export async function getRecordsByTx(hash: string, signal?: AbortSignal): Promise<InferenceRecord[]> {
   const receipt = await cachedReceipt(hash, signal);
-  if (!receipt) return [];
+  // null = the public RPC node has no record of this tx. Because that node is
+  // non-archival, older transactions get pruned and can't be fetched here
+  // (the official explorer keeps full history via its own index).
+  if (!receipt) {
+    throw new Error("PRUNED");
+  }
 
   // Resolve to the tx that carries spcCalls.
   let origReceipt: RawReceipt | null = receipt;

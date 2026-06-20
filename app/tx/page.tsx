@@ -41,18 +41,32 @@ function TxView() {
       )}
 
       {valid && query.isError && (
-        <div className="rounded-lg border border-ritual-red/40 bg-ritual-red/10 p-4 text-sm text-ritual-red">
-          {(query.error as Error)?.message ?? "lookup failed"}
+        <div className="rounded-lg border border-ritual-gold/40 bg-ritual-gold/10 p-4 text-sm">
+          {(query.error as Error)?.message === "PRUNED" ? (
+            <>
+              <p className="text-ritual-gold">Not available on the public RPC node.</p>
+              <p className="mt-1 text-xs text-gray-400">
+                This explorer reads the chain live from a <strong>non-archival</strong> node, which prunes
+                older transactions — so it can&apos;t fetch this one. The official explorer keeps full history.{" "}
+                <a href={explorerTx(hash)} target="_blank" rel="noreferrer" className="text-ritual-lime hover:underline">
+                  Open it there ↗
+                </a>
+              </p>
+            </>
+          ) : (
+            <span className="text-ritual-red">{(query.error as Error)?.message ?? "lookup failed"}</span>
+          )}
         </div>
       )}
 
       {valid && query.isSuccess && query.data.length === 0 && (
         <div className="rounded-lg border border-gray-700/60 bg-ritual-elevated/40 p-8 text-center text-sm text-gray-400">
-          No precompile (inference) call found for this transaction.
+          No AI precompile call in this transaction.
           <div className="mt-2 text-xs text-gray-600">
-            It may contain no async precompile call, or the testnet node may have pruned it.{" "}
+            It&apos;s a regular transfer or contract call — this explorer only decodes inference
+            precompiles (LLM, HTTP, agents, image…).{" "}
             <a href={explorerTx(hash)} target="_blank" rel="noreferrer" className="text-ritual-lime hover:underline">
-              View on the chain explorer ↗
+              View on the official explorer ↗
             </a>
           </div>
         </div>

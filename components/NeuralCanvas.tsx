@@ -6,10 +6,9 @@ import { ACCENT_HEX } from "@/lib/ritual/constants";
 import type { InferenceRecord } from "@/lib/ritual/types";
 import { huntField, type HuntTarget } from "@/lib/hunt";
 
-// Free-floating transaction-particle field (à la the reference repo's particle pool):
-// each live inference is a drifting, colour-coded dot. Failed (red) and pending
-// (amber) dots are prey for the lizard; the rest are coloured by precompile group.
-// No pipeline rail / stage labels.
+// Live transaction field: every particle is a REAL inference call, rendered as its
+// precompile glyph and coloured by status. No empty filler dots. The lizard chases
+// and eats them (game-style), inspired by the reference repo's tx-hunting particles.
 
 interface Particle {
   id: number;
@@ -18,10 +17,9 @@ interface Particle {
   vx: number;
   vy: number;
   color: string;
+  glyph: string;
   size: number;
-  ttl: number; // frames remaining (<=0 for ambient = immortal)
-  ambient: boolean;
-  huntable: boolean;
+  ttl: number;
 }
 
 interface Spark {
@@ -42,28 +40,27 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const seen = useRef<Set<string>>(new Set());
-  const spawnQ = useRef<{ color: string; huntable: boolean }[]>([]);
+  const spawnQ = useRef<{ color: string; glyph: string }[]>([]);
 
-  // ingest new records → queue tx particles (red=error, amber=pending → prey; else group colour)
+  // ingest new records → queue a token per real inference (colour by status)
   useEffect(() => {
     let added = 0;
     for (const r of records) {
       const key = `${r.systemTx ?? r.originalTx}-${r.blockNumber}`;
       if (!seen.current.has(key)) {
         seen.current.add(key);
-        if (added < 16) {
-          const huntable = !!(r.decoded.hasError || r.decoded.outputViaCallback);
+        if (added < 40) {
           const color = r.decoded.hasError
             ? C.red
             : r.decoded.outputViaCallback
               ? C.gold
               : ACCENT_HEX[r.accent] ?? C.cyan;
-          spawnQ.current.push({ color, huntable });
+          spawnQ.current.push({ color, glyph: r.glyph || "◇" });
           added++;
         }
       }
     }
-    if (seen.current.size > 600) seen.current = new Set([...seen.current].slice(-300));
+    if (seen.current.size > 800) seen.current = new Set([...seen.current].slice(-400));
   }, [records]);
 
   useEffect(() => {
@@ -79,6 +76,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
     let h = 0;
     let nextId = 1;
     const sparks: Spark[] = [];
+    const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
     function resize() {
       const parent = cv.parentElement;
@@ -96,55 +94,41 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
     const ro = new ResizeObserver(resize);
     if (cv.parentElement) ro.observe(cv.parentElement);
 
-    const rand = (a: number, b: number) => a + Math.random() * (b - a);
-
-    // ambient drifting dots
-    for (let i = 0; i < 30; i++) {
-      particles.current.push({
-        id: nextId++, x: rand(0, w || 800), y: rand(0, h || 600),
-        vx: rand(-0.4, 0.4), vy: rand(-0.4, 0.4),
-        color: C.cyan, size: 1.5, ttl: -1, ambient: true, huntable: false,
-      });
-    }
-
     function draw() {
       cx.clearRect(0, 0, w, h);
 
-      // spawn queued tx particles at random positions with a gentle drift
-      while (spawnQ.current.length && particles.current.length < 150) {
+      while (spawnQ.current.length && particles.current.length < 110) {
         const item = spawnQ.current.shift()!;
-        const edge = Math.random();
         particles.current.push({
           id: nextId++,
           x: rand(0.05 * w, 0.95 * w),
           y: rand(0.05 * h, 0.95 * h),
-          vx: rand(-0.9, 0.9) || 0.4,
-          vy: rand(-0.9, 0.9) || 0.4,
+          vx: rand(-0.8, 0.8) || 0.4,
+          vy: rand(-0.8, 0.8) || 0.4,
           color: item.color,
-          size: 2.6 + Math.random() * 2.2,
-          ttl: 360 + Math.floor(Math.random() * 240),
-          ambient: false,
-          huntable: item.huntable,
+          glyph: item.glyph,
+          size: 3 + Math.random() * 2,
+          ttl: 800 + Math.floor(Math.random() * 600),
         });
-        void edge;
       }
 
       const removals = huntField.drainRemovals();
       const rmSet = removals.length ? new Set(removals) : null;
 
+      cx.textAlign = "center";
+      cx.textBaseline = "middle";
+
       const next: Particle[] = [];
       const frameTargets: HuntTarget[] = [];
       for (const p of particles.current) {
-        // motion + wrap
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0) p.x += w;
         else if (p.x > w) p.x -= w;
         if (p.y < 0) p.y += h;
         else if (p.y > h) p.y -= h;
-        if (!p.ambient) p.ttl -= 1;
+        p.ttl -= 1;
 
-        // eaten by the lizard → spark burst, remove
         if (rmSet && rmSet.has(p.id)) {
           for (let k = 0; k < 16; k++) {
             const ang = (k / 16) * Math.PI * 2;
@@ -153,24 +137,28 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
           }
           continue;
         }
-        if (!p.ambient && p.ttl <= 0) continue; // expired
+        if (p.ttl <= 0) continue;
 
-        const fade = p.ambient ? 1 : Math.min(1, p.ttl / 60); // fade out near end
+        const fade = Math.min(1, p.ttl / 80);
+        // glowing nucleus
         cx.beginPath();
         cx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        cx.fillStyle = hexToRgba(p.color, p.ambient ? 0.5 : 0.9 * fade);
+        cx.fillStyle = hexToRgba(p.color, 0.85 * fade);
         cx.shadowColor = p.color;
-        cx.shadowBlur = p.ambient ? 4 : 12;
+        cx.shadowBlur = 10;
         cx.fill();
         cx.shadowBlur = 0;
+        // precompile glyph (crisp, no per-glyph shadow for perf)
+        cx.font = "12px ui-monospace, monospace";
+        cx.fillStyle = hexToRgba(p.color, fade);
+        cx.fillText(p.glyph, p.x, p.y - p.size - 7);
 
-        if (!p.ambient) frameTargets.push({ id: p.id, x: p.x, y: p.y, huntable: p.huntable });
+        frameTargets.push({ id: p.id, x: p.x, y: p.y, huntable: true });
         next.push(p);
       }
       particles.current = next;
       huntField.publish(frameTargets);
 
-      // sparks
       for (let i = sparks.length - 1; i >= 0; i--) {
         const s = sparks[i];
         s.x += s.vx;

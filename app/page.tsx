@@ -93,7 +93,7 @@ export default function TerminalPage() {
             <span><span style={{ color: "#FACC15" }}>●</span> pending</span>
             <span><span style={{ color: "#EF4444" }}>●</span> failed</span>
           </div>
-          <div className="mt-1 text-gray-600">🦎 the lizard hunts pending + failed txs</div>
+          <div className="mt-1 text-gray-600">each glyph = a live inference · 🦎 the lizard hunts them</div>
         </div>
       </section>
     </main>

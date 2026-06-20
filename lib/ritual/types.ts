@@ -68,3 +68,29 @@ export interface FeedResponse {
   scannedAt: number;
   counts: Record<string, number>; // precompileKey -> count
 }
+
+/** Standard transaction-level data (like a general explorer shows). */
+export interface TxOverview {
+  hash: string;
+  status: "success" | "failed";
+  typeHex: string;
+  typeLabel: string;
+  blockNumber: number | null;
+  timestamp: number | null;
+  from: string | null;
+  to: string | null;
+  valueRitual: string;
+  nonce: number | null;
+  gasUsed: string;
+  gasPriceGwei: string;
+  feeRitual: string;
+  logsCount: number;
+  originalTx: string | null;
+  commitmentTx: string | null;
+  settlementTx: string | null;
+}
+
+export interface TxDetail {
+  overview: TxOverview;
+  records: InferenceRecord[];
+}

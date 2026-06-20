@@ -9,11 +9,13 @@ import {
   getBlockTimestamp,
   getLogs,
   getReceipt,
+  getTx,
   type RawLog,
   type RawReceipt,
 } from "./client";
 import { decodeCall } from "./decode";
-import type { FeedResponse, InferenceRecord } from "./types";
+import { formatEther, formatGwei } from "viem";
+import type { FeedResponse, InferenceRecord, TxDetail, TxOverview } from "./types";
 
 const MAX_CHUNK = 3000; // RPC eth_getLogs range cap (90k => 504; 3k is safe)
 
@@ -243,4 +245,63 @@ export async function getRecordsByTx(hash: string, signal?: AbortSignal): Promis
       decoded: decodeCall(pa, c.input, c.output),
     };
   });
+}
+
+
+/* --------------------------- tx overview --------------------------- */
+const TX_TYPE_LABELS: Record<string, string> = {
+  "0x0": "Legacy",
+  "0x1": "Access List",
+  "0x2": "EIP-1559",
+  "0x10": "Scheduled",
+  "0x11": "Async (system)",
+  "0x77": "Passkey (WebAuthn)",
+};
+
+function safeBig(hex?: string | null): bigint {
+  try {
+    return hex ? BigInt(hex) : 0n;
+  } catch {
+    return 0n;
+  }
+}
+
+async function buildOverview(hash: string, signal?: AbortSignal): Promise<TxOverview> {
+  const [tx, receipt] = await Promise.all([
+    getTx(hash, signal).catch(() => null),
+    cachedReceipt(hash, signal),
+  ]);
+  const blockHex = receipt?.blockNumber ?? tx?.blockNumber ?? null;
+  const timestamp = blockHex ? await getBlockTimestamp(blockHex, signal).catch(() => null) : null;
+  const typeHex = (receipt?.type ?? tx?.type ?? "").toLowerCase();
+  const gasUsed = safeBig(receipt?.gasUsed);
+  const gasPrice = safeBig(receipt?.effectiveGasPrice ?? tx?.gasPrice);
+  const fromAddr = receipt?.from ?? tx?.from ?? null;
+  const toAddr = receipt?.to ?? tx?.to ?? null;
+  return {
+    hash,
+    status: receipt?.status === "0x1" ? "success" : "failed",
+    typeHex,
+    typeLabel: TX_TYPE_LABELS[typeHex] ?? (typeHex || "—"),
+    blockNumber: blockHex ? Number(safeBig(blockHex)) : null,
+    timestamp,
+    from: fromAddr ? normAddr(fromAddr) : null,
+    to: toAddr ? normAddr(toAddr) : null,
+    valueRitual: formatEther(safeBig(tx?.value)),
+    nonce: tx?.nonce != null ? Number(safeBig(tx.nonce)) : null,
+    gasUsed: gasUsed.toString(),
+    gasPriceGwei: formatGwei(gasPrice),
+    feeRitual: formatEther(gasUsed * gasPrice),
+    logsCount: receipt?.logs?.length ?? 0,
+    originalTx: receipt?.originalTx ?? null,
+    commitmentTx: receipt?.commitmentTx ?? null,
+    settlementTx: receipt?.settlementTx ?? null,
+  };
+}
+
+/** Full detail for the tx page: standard tx overview + decoded inference records. */
+export async function getTxDetail(hash: string, signal?: AbortSignal): Promise<TxDetail> {
+  const records = await getRecordsByTx(hash, signal); // throws "PRUNED" if the node has no receipt
+  const overview = await buildOverview(hash, signal);
+  return { overview, records };
 }

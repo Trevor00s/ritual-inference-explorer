@@ -29,6 +29,10 @@ export interface RawReceipt {
   to: string | null;
   status: string;
   type: string;
+  gasUsed?: string;
+  effectiveGasPrice?: string;
+  cumulativeGasUsed?: string;
+  logs?: RawLog[];
   // Ritual extensions:
   spcCalls?: SpcCall[];
   originalTx?: string | null;
@@ -89,6 +93,24 @@ export async function getLogs(
 
 export async function getReceipt(txHash: string, signal?: AbortSignal): Promise<RawReceipt | null> {
   return rpc<RawReceipt | null>("eth_getTransactionReceipt", [txHash], signal);
+}
+
+export interface RawTx {
+  hash: string;
+  type: string;
+  from: string;
+  to: string | null;
+  value: string;
+  nonce: string;
+  gas: string;
+  gasPrice?: string;
+  maxFeePerGas?: string;
+  input: string;
+  blockNumber: string;
+}
+
+export async function getTx(txHash: string, signal?: AbortSignal): Promise<RawTx | null> {
+  return rpc<RawTx | null>("eth_getTransactionByHash", [txHash], signal);
 }
 
 const _blockTsCache = new Map<string, number>();

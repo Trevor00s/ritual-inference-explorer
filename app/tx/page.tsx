@@ -6,7 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { RecordDetail } from "@/components/RecordDetail";
-import { getRecordsByTx } from "@/lib/ritual/indexer";
+import { getTxDetail } from "@/lib/ritual/indexer";
+import { TxOverviewCard } from "@/components/TxOverview";
 import { explorerTx } from "@/lib/format";
 
 function TxView() {
@@ -16,7 +17,7 @@ function TxView() {
 
   const query = useQuery({
     queryKey: ["tx", hash],
-    queryFn: () => getRecordsByTx(hash),
+    queryFn: () => getTxDetail(hash),
     enabled: valid,
   });
 
@@ -59,24 +60,25 @@ function TxView() {
         </div>
       )}
 
-      {valid && query.isSuccess && query.data.length === 0 && (
-        <div className="rounded-lg border border-gray-700/60 bg-ritual-elevated/40 p-8 text-center text-sm text-gray-400">
-          No AI precompile call in this transaction.
-          <div className="mt-2 text-xs text-gray-600">
-            It&apos;s a regular transfer or contract call — this explorer only decodes inference
-            precompiles (LLM, HTTP, agents, image…).{" "}
-            <a href={explorerTx(hash)} target="_blank" rel="noreferrer" className="text-ritual-lime hover:underline">
-              View on the official explorer ↗
-            </a>
-          </div>
+      {valid && query.isSuccess && (
+        <div className="space-y-6">
+          <TxOverviewCard o={query.data.overview} />
+          {query.data.records.length === 0 ? (
+            <div className="rounded-lg border border-gray-700/60 bg-ritual-elevated/40 p-6 text-center text-sm text-gray-400">
+              No AI precompile call in this transaction — it&apos;s a regular transfer or contract call.{" "}
+              <a href={explorerTx(hash)} target="_blank" rel="noreferrer" className="text-ritual-lime hover:underline">
+                View on the official explorer ↗
+              </a>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {query.data.records.map((r, i) => (
+                <RecordDetail key={`${r.precompileAddress}-${i}`} r={r} />
+              ))}
+            </div>
+          )}
         </div>
       )}
-
-      <div className="space-y-8">
-        {query.data?.map((r, i) => (
-          <RecordDetail key={`${r.precompileAddress}-${i}`} r={r} />
-        ))}
-      </div>
     </div>
   );
 }

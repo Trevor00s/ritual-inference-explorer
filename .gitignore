@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+
+# vendored third-party skills (separate repo) — not part of this project
+.claude/
+# internal build checkpoint
+.ritual-build/

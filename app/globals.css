@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: var(--font-archivo), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+html,
+body {
+  background-color: #000000;
+  color: #d1d5db;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Atmosphere: surgical glows on the black canvas (design philosophy §1) */
+body {
+  background-image:
+    radial-gradient(60rem 60rem at 85% -10%, rgba(255, 29, 206, 0.06), transparent 60%),
+    radial-gradient(50rem 50rem at 0% 0%, rgba(25, 209, 132, 0.05), transparent 55%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(191, 255, 0, 0.25);
+}
+
+/* thin dark scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+.glass {
+  background: rgba(17, 24, 39, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------- Neural Terminal aesthetic ---------------- */
+
+.term {
+  font-family: var(--font-mono);
+}
+
+/* CRT scanlines overlay */
+.scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  z-index: 20;
+  mix-blend-mode: multiply;
+}
+
+/* faint blueprint grid */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.neon-cyan {
+  color: #00e5ff;
+  text-shadow: 0 0 6px rgba(0, 229, 255, 0.6);
+}
+.neon-green {
+  color: #19d184;
+  text-shadow: 0 0 6px rgba(25, 209, 132, 0.55);
+}
+.neon-pink {
+  color: #ff1dce;
+  text-shadow: 0 0 6px rgba(255, 29, 206, 0.55);
+}
+
+.term-cursor::after {
+  content: "▋";
+  margin-left: 2px;
+  animation: blink 1.1s steps(1) infinite;
+  color: #19d184;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.82; }
+  94% { opacity: 1; }
+}
+.flicker {
+  animation: flicker 6s infinite;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-track {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: ticker 38s linear infinite;
+}
+
+.row-in {
+  animation: fade-in 0.3s ease-out;
+}

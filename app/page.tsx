@@ -85,16 +85,15 @@ export default function TerminalPage() {
 
         {/* pipeline legend (over canvas, right side) */}
         <div className="pointer-events-none absolute bottom-3 right-3 z-20 hidden rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-[10px] text-gray-500 backdrop-blur-sm sm:block">
-          <div className="mb-1 uppercase tracking-widest text-gray-600">TEE pipeline</div>
-          <div className="font-mono neon-cyan">SUBMIT→COMMIT→TEE·EXEC→ATTEST→SETTLE→DELIVER</div>
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+          <div className="mb-1 uppercase tracking-widest text-gray-600">live inference field</div>
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
             <span><span style={{ color: "#FF1DCE" }}>●</span> AI</span>
             <span><span style={{ color: "#BFFF00" }}>●</span> I/O</span>
             <span><span style={{ color: "#19D184" }}>●</span> verified</span>
             <span><span style={{ color: "#FACC15" }}>●</span> pending</span>
             <span><span style={{ color: "#EF4444" }}>●</span> failed</span>
           </div>
-          <div className="mt-1 text-gray-600">🦎 the lizard hunts pending + failed inferences</div>
+          <div className="mt-1 text-gray-600">🦎 the lizard hunts pending + failed txs</div>
         </div>
       </section>
     </main>

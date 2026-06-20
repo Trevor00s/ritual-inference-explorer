@@ -21,10 +21,7 @@ export function Critter({ color = "#19D184" }: { color?: string }) {
     }
     window.addEventListener("mousemove", onMove);
 
-    const logo = new Image();
-    logo.src = "/ritual-logo.png";
-
-    const stop = startCritter(canvas, mouse, { color, hunt: huntField, logo });
+    const stop = startCritter(canvas, mouse, { color, hunt: huntField });
 
     return () => {
       window.removeEventListener("mousemove", onMove);

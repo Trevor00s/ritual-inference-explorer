@@ -44,11 +44,14 @@ export default function TerminalPage() {
       <Hud feed={data} live={live} />
 
       <section className="scanlines grid-bg relative flex-1 overflow-hidden">
-        <NeuralCanvas records={data?.records ?? []} />
-        <Critter />
+        {/* right-side playground — lizard + tx particles are confined here, off the log panel */}
+        <div className="absolute inset-y-0 left-0 right-0 overflow-hidden sm:left-[40%]">
+          <NeuralCanvas records={data?.records ?? []} />
+          <Critter />
+        </div>
 
         {/* left terminal panel (glass, canvas glows behind) */}
-        <div className="absolute inset-y-0 left-0 z-20 flex w-full max-w-md flex-col border-r border-white/10 bg-black/70 backdrop-blur-sm sm:w-[44%]">
+        <div className="absolute inset-y-0 left-0 z-20 flex w-full flex-col border-r border-white/10 bg-black/85 backdrop-blur-sm sm:w-[40%]">
           <div className="space-y-2 border-b border-white/10 p-3">
             <div className="flex items-center justify-between">
               <span className="text-[11px] uppercase tracking-[0.2em] text-gray-500">

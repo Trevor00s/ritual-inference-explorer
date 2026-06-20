@@ -34,6 +34,20 @@ export const huntField = {
     }
     return best;
   },
+  /** nearest tx of any kind — to drift toward when no prey is huntable */
+  nearestAny(x: number, y: number): HuntTarget | null {
+    let best: HuntTarget | null = null;
+    let bd = Infinity;
+    for (const t of targets) {
+      if (eaten.has(t.id)) continue;
+      const d = (t.x - x) * (t.x - x) + (t.y - y) * (t.y - y);
+      if (d < bd) {
+        bd = d;
+        best = t;
+      }
+    }
+    return best;
+  },
   /** hunter calls on contact */
   markEaten(id: number) {
     if (eaten.has(id)) return;

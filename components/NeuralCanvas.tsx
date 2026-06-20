@@ -17,7 +17,7 @@ interface Particle {
   vx: number;
   vy: number;
   color: string;
-  glyph: string;
+  label: string;
   size: number;
   ttl: number;
 }
@@ -40,9 +40,9 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const seen = useRef<Set<string>>(new Set());
-  const spawnQ = useRef<{ color: string; glyph: string }[]>([]);
+  const spawnQ = useRef<{ color: string; label: string }[]>([]);
 
-  // ingest new records → queue a token per real inference (colour by status)
+  // ingest new records → queue a token per real inference, shown as its tx hash
   useEffect(() => {
     let added = 0;
     for (const r of records) {
@@ -55,7 +55,9 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
             : r.decoded.outputViaCallback
               ? C.gold
               : ACCENT_HEX[r.accent] ?? C.cyan;
-          spawnQ.current.push({ color, glyph: r.glyph || "◇" });
+          const tx = r.originalTx ?? r.systemTx ?? "";
+          const label = tx ? `${tx.slice(0, 6)}…${tx.slice(-4)}` : r.badge || "tx";
+          spawnQ.current.push({ color, label });
           added++;
         }
       }
@@ -97,7 +99,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
     function draw() {
       cx.clearRect(0, 0, w, h);
 
-      while (spawnQ.current.length && particles.current.length < 110) {
+      while (spawnQ.current.length && particles.current.length < 60) {
         const item = spawnQ.current.shift()!;
         particles.current.push({
           id: nextId++,
@@ -106,7 +108,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
           vx: rand(-0.8, 0.8) || 0.4,
           vy: rand(-0.8, 0.8) || 0.4,
           color: item.color,
-          glyph: item.glyph,
+          label: item.label,
           size: 3 + Math.random() * 2,
           ttl: 800 + Math.floor(Math.random() * 600),
         });
@@ -148,10 +150,10 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
         cx.shadowBlur = 10;
         cx.fill();
         cx.shadowBlur = 0;
-        // precompile glyph (crisp, no per-glyph shadow for perf)
-        cx.font = "12px ui-monospace, monospace";
+        // transaction hash label — the particle IS a tx
+        cx.font = "10px ui-monospace, monospace";
         cx.fillStyle = hexToRgba(p.color, fade);
-        cx.fillText(p.glyph, p.x, p.y - p.size - 7);
+        cx.fillText(p.label, p.x, p.y - p.size - 7);
 
         frameTargets.push({ id: p.id, x: p.x, y: p.y, huntable: true });
         next.push(p);

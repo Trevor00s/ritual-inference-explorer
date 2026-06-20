@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { C } from "@/lib/neural";
-import { ACCENT_HEX } from "@/lib/ritual/constants";
 import type { InferenceRecord } from "@/lib/ritual/types";
 import { huntField, type HuntTarget } from "@/lib/hunt";
 
@@ -18,6 +17,7 @@ interface Particle {
   vy: number;
   color: string;
   label: string;
+  huntable: boolean;
   size: number;
   ttl: number;
 }
@@ -40,9 +40,9 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particles = useRef<Particle[]>([]);
   const seen = useRef<Set<string>>(new Set());
-  const spawnQ = useRef<{ color: string; label: string }[]>([]);
+  const spawnQ = useRef<{ color: string; label: string; huntable: boolean }[]>([]);
 
-  // ingest new records → queue a token per real inference, shown as its tx hash
+  // ingest new records → queue a tx token. pending = prey (about to be verified).
   useEffect(() => {
     let added = 0;
     for (const r of records) {
@@ -50,14 +50,11 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
       if (!seen.current.has(key)) {
         seen.current.add(key);
         if (added < 40) {
-          const color = r.decoded.hasError
-            ? C.red
-            : r.decoded.outputViaCallback
-              ? C.gold
-              : ACCENT_HEX[r.accent] ?? C.cyan;
+          const pending = !!r.decoded.outputViaCallback && !r.decoded.hasError;
+          const color = r.decoded.hasError ? C.red : pending ? C.gold : C.green;
           const tx = r.originalTx ?? r.systemTx ?? "";
           const label = tx ? `${tx.slice(0, 6)}…${tx.slice(-4)}` : r.badge || "tx";
-          spawnQ.current.push({ color, label });
+          spawnQ.current.push({ color, label, huntable: pending });
           added++;
         }
       }
@@ -113,6 +110,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
           vy: rand(-0.8, 0.8) || 0.4,
           color: item.color,
           label: item.label,
+          huntable: item.huntable,
           size: 3 + Math.random() * 2,
           ttl: 800 + Math.floor(Math.random() * 600),
         });
@@ -141,7 +139,8 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
             const sp = 1 + Math.random() * 3.5;
             sparks.push({ x: p.x, y: p.y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 1, color: p.color });
           }
-          continue;
+          p.color = C.green; // verified by the lizard
+          p.huntable = false;
         }
         if (p.ttl <= 0) continue;
 
@@ -159,7 +158,7 @@ export function NeuralCanvas({ records }: { records: InferenceRecord[] }) {
         cx.fillStyle = hexToRgba(p.color, fade);
         cx.fillText(p.label, p.x, p.y - p.size - 7);
 
-        frameTargets.push({ id: p.id, x: p.x, y: p.y, huntable: true });
+        frameTargets.push({ id: p.id, x: p.x, y: p.y, huntable: p.huntable });
         next.push(p);
       }
       particles.current = next;

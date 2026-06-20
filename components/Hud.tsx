@@ -52,8 +52,8 @@ export function Hud({ feed, live }: { feed?: FeedResponse; live: boolean }) {
               <span className="neon-green tabular">{total}</span> calls/window
             </span>
           )}
-          <span title="failed/pending inference particles hunted by the lizard">
-            🦎 <span className="neon-pink tabular">{kills}</span> hunted
+          <span title="pending txs verified by the lizard, in order">
+            🦎 <span className="neon-pink tabular">{kills}</span> verified
           </span>
           <span className="flex items-center gap-1">
             <span

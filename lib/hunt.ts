@@ -48,6 +48,15 @@ export const huntField = {
     }
     return best;
   },
+  /** the next pending tx to verify, in order (oldest first = lowest id) */
+  nextOrdered(): HuntTarget | null {
+    let best: HuntTarget | null = null;
+    for (const t of targets) {
+      if (!t.huntable || eaten.has(t.id)) continue;
+      if (!best || t.id < best.id) best = t;
+    }
+    return best;
+  },
   /** hunter calls on contact */
   markEaten(id: number) {
     if (eaten.has(id)) return;

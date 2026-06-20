@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Hud } from "@/components/Hud";
+import { BootScreen } from "@/components/BootScreen";
 import { NeuralCanvas } from "@/components/NeuralCanvas";
 import { Critter } from "@/components/Critter";
 import { TerminalFeed } from "@/components/TerminalFeed";
@@ -35,9 +36,11 @@ export default function TerminalPage() {
     refetchInterval: live ? 5000 : false,
   });
   const data = query.data;
+  const ready = (query.isSuccess && !!data) || query.isError;
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-black text-gray-300 term">
+      <BootScreen done={ready} />
       <Hud feed={data} live={live} />
 
       <section className="scanlines grid-bg relative flex-1 overflow-hidden">
